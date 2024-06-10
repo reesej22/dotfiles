@@ -1,1 +1,18 @@
+import = [
+  "/usr/local/lib/node_modules/alacritty-themes/themes/vscode.dark.toml"
+]
+[env]
+TERM = "xterm-256color"
 
+[window]
+opacity = 0.8
+blur = true
+
+padding.x = 10
+padding.y = 10
+
+decorations = "Buttonless"
+
+[font]
+normal.family = "Hack Nerd Font Mono"
+size = 14
