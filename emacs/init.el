@@ -1,21 +1,22 @@
 ;; -*- lexical-binding: t -*-
 ;; init.el --- Emacs configuration file
 
-;; Author: Your Name
-;; Maintainer: Your Name
-;; Version: 0.1
+;; Author: Joshua Reese
+;; Version: 0.2
 ;; Keywords: convenience
-;; URL: http://example.com/your-emacs-config
+;; URL: https://github.com/reesej22/dotfiles/edit/Research/emacs/init.el
 
 ;; Commentary:
 ;; This is the main configuration file for Emacs.
 
 ;; Code:
+
 (require 'package)
 
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("org" . "https://orgmode.org/elpa/")
-                         ("gnu" . "https://elpa.gnu.org/packages/")))
+(setq package-archives
+      '(("melpa" . "https://melpa.org/packages/")
+        ("org" . "https://orgmode.org/elpa/")
+        ("gnu" . "https://elpa.gnu.org/packages/")))
 
 (package-initialize)
 (unless package-archive-contents
@@ -28,72 +29,93 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-;; ========== Begin Package Configurations ==========
+;; General settings
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+(scroll-bar-mode -1)
+(xterm-mouse-mode t)
+(global-display-line-numbers-mode 1)
+(setq make-backup-files nil) ; stop creating ~ files
 
-;; rustic = basic rust-mode + additions
-(use-package rustic
-  :ensure t
-  :bind (:map rustic-mode-map
-              ("M-j" . lsp-ui-imenu)
-              ("M-?" . lsp-find-references)
-              ("C-c C-c l" . flycheck-list-errors)
-              ("C-c C-c a" . lsp-execute-code-action)
-              ("C-c C-c r" . lsp-rename)
-              ("C-c C-c q" . lsp-workspace-restart)
-              ("C-c C-c Q" . lsp-workspace-shutdown)
-              ("C-c C-c s" . lsp-rust-analyzer-status)
-              ("C-c C-c e" . lsp-rust-analyzer-expand-macro)
-              ("C-c C-c d" . dap-hydra)
-              ("C-c C-c h" . lsp-ui-doc-glance))
+;; Custom-set variables and faces
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-enabled-themes '(doom-acario-dark))
+ '(custom-safe-themes
+   '("dccf4a8f1aaf5f24d2ab63af1aa75fd9d535c83377f8e26380162e888be0c6a9" default))
+ '(package-selected-packages
+   '(treemacs-all-the-icons treemacs vertico-multiform dashboard vertico-posframe doom-themes doom-modeline platformio-mode arduino-mode arduino-cli-mode airline-themes powerline bash-completion smex nov nose ivy-hydra counsel yasnippet toml-mode rustic rust-playground pdf-tools lsp-ui flycheck exec-path-from-shell company)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+
+ ; Packages
+
+;; Dashboard
+(use-package dashboard
   :config
-  (add-hook 'rustic-mode-hook 'rk/rustic-mode-hook))
+  (dashboard-setup-startup-hook)
+  (setq dashboard-center-content t)
+  (setq dashboard-vertically-center-content t)
+  (setq dashboard-show-shortcuts nil))
 
-(defun rk/rustic-mode-hook ()
-  (when buffer-file-name
-    (setq-local buffer-save-without-query t))
-  (add-hook 'before-save-hook 'lsp-format-buffer nil t))
-
-;; for rust-analyzer integration
-(use-package lsp-mode
-  :ensure t
-  :commands lsp
+;; Doom modeline and themes
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
   :custom
-  (lsp-rust-analyzer-cargo-watch-command "clippy")
-  (lsp-eldoc-render-all t)
-  (lsp-idle-delay 0.6)
-  (lsp-rust-analyzer-server-display-inlay-hints t)
-  (lsp-rust-analyzer-display-lifetime-elision-hints-enable "skip_trivial")
-  (lsp-rust-analyzer-display-chaining-hints t)
-  (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names nil)
-  (lsp-rust-analyzer-display-closure-return-type-hints t)
-  (lsp-rust-analyzer-display-parameter-hints nil)
-  (lsp-rust-analyzer-display-reborrow-hints nil)
+  (doom-modeline-height 30)
+  (doom-modeline-window-width-limit nil)
+  (doom-modeline-buffer-file-name-style 'truncate-with-project)
+  (doom-modeline-minor-modes nil)
+  (doom-modeline-enable-word-count t)
+  (doom-modeline-buffer-encoding nil)
+  (doom-modeline-buffer-modification-icon t)
+  (doom-modeline-env-python-executable "python")
+  (display-time-mode t)
+  (doom-modeline-time t)
+  (doom-modeline-vcs-max-length 50))
+
+(use-package doom-themes
   :config
-  (add-hook 'lsp-mode-hook 'lsp-ui-mode))
-
-(use-package lsp-ui
-  :ensure t
-  :commands lsp-ui-mode
+  (doom-themes-org-config)
+  (doom-themes-visual-bell-config))
+  
+(use-package vertico
+  :hook (after-init . vertico-multiform-mode)
+  :init (vertico-mode)
+  (setq vertico-multiform-commands
+        '((consult-line (:not posframe))
+          (gopar/consult-line (:not posframe))
+          (consult-ag (:not posframe))
+          (t posframe))))
+          
+(use-package vertico-posframe
   :custom
-  (lsp-ui-peek-always-show t)
-  (lsp-ui-sideline-show-hover t)
-  (lsp-ui-doc-enable nil))
+  (vertico-posframe-parameters
+   '((left-fringe . 8)
+     (right-fringe . 8))))
 
-;; inline errors
+(setq vertico-cycle t)
+
+;; Flycheck for syntax checking
 (use-package flycheck
-  :ensure t
   :init (global-flycheck-mode))
 
-;; auto-completion and code snippets
+;; Yasnippet for code snippets
 (use-package yasnippet
-  :ensure t
   :config
   (yas-reload-all)
   (add-hook 'prog-mode-hook 'yas-minor-mode)
   (add-hook 'text-mode-hook 'yas-minor-mode))
 
+;; Company for auto-completion
 (use-package company
-  :ensure t
   :bind (:map company-active-map
               ("C-n" . company-select-next)
               ("C-p" . company-select-previous)
@@ -101,7 +123,11 @@
               ("M->" . company-select-last))
   (:map company-mode-map
         ("<tab>" . tab-indent-or-complete)
-        ("TAB" . tab-indent-or-complete)))
+        ("TAB" . tab-indent-or-complete))
+  :hook (prog-mode . company-mode)
+  :custom
+  (company-idle-delay 0.2)
+  (company-minimum-prefix-length 2))
 
 (defun company-yasnippet-or-completion ()
   (interactive)
@@ -130,22 +156,60 @@
             (company-complete-common)
           (indent-for-tab-command)))))
 
-;; Create / cleanup rust scratch projects quickly
-(use-package rust-playground
-  :ensure t)
+;; Rust development setup
+(use-package rustic
+  :bind (:map rustic-mode-map
+              ("M-j" . lsp-ui-imenu)
+              ("M-?" . lsp-find-references)
+              ("C-c C-c l" . flycheck-list-errors)
+              ("C-c C-c a" . lsp-execute-code-action)
+              ("C-c C-c r" . lsp-rename)
+              ("C-c C-c q" . lsp-workspace-restart)
+              ("C-c C-c Q" . lsp-workspace-shutdown)
+              ("C-c C-c s" . lsp-rust-analyzer-status)
+              ("C-c C-c e" . lsp-rust-analyzer-expand-macro)
+              ("C-c C-c d" . dap-hydra)
+              ("C-c C-c h" . lsp-ui-doc-glance))
+  :config
+  (add-hook 'rustic-mode-hook 'rk/rustic-mode-hook))
 
-;; for Cargo.toml and other config files
-(use-package toml-mode
-  :ensure t)
+(defun rk/rustic-mode-hook ()
+  (when buffer-file-name
+    (setq-local buffer-save-without-query t))
+  (add-hook 'before-save-hook 'lsp-format-buffer nil t))
 
-;; setting up debugging support with dap-mode
+(use-package lsp-mode
+  :commands lsp
+  :custom
+  (lsp-rust-analyzer-cargo-watch-command "clippy")
+  (lsp-eldoc-render-all t)
+  (lsp-idle-delay 0.6)
+  (lsp-rust-analyzer-server-display-inlay-hints t)
+  (lsp-rust-analyzer-display-lifetime-elision-hints-enable "skip_trivial")
+  (lsp-rust-analyzer-display-chaining-hints t)
+  (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names nil)
+  (lsp-rust-analyzer-display-closure-return-type-hints t)
+  (lsp-rust-analyzer-display-parameter-hints nil)
+  (lsp-rust-analyzer-display-reborrow-hints nil)
+  :config
+  (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+
+(use-package lsp-ui
+  :commands lsp-ui-mode
+  :custom
+  (lsp-ui-peek-always-show t)
+  (lsp-ui-sideline-show-hover t)
+  (lsp-ui-doc-enable nil))
+
+(use-package rust-playground)
+(use-package toml-mode)
+
+;; Debugging support with dap-mode
 (use-package exec-path-from-shell
-  :ensure t
   :init (exec-path-from-shell-initialize))
 
 (when (executable-find "lldb-mi")
   (use-package dap-mode
-    :ensure t
     :config
     (dap-ui-mode)
     (dap-ui-controls-mode 1)
@@ -159,20 +223,14 @@
            :name "LLDB::Run"
            :gdbpath "rust-lldb"))))
 
-;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-;; Python Development Setup
-
-;; Install and configure lsp-mode for Python
+;; Python development setup
 (use-package lsp-mode
-  :ensure t
   :hook (python-mode . lsp-deferred)
   :commands (lsp lsp-deferred)
   :custom
   (lsp-pylsp-server-command "pylsp"))
 
-;; Optional: Configure lsp-ui for better UI
 (use-package lsp-ui
-  :ensure t
   :commands lsp-ui-mode
   :custom
   (lsp-ui-peek-always-show t)
@@ -180,132 +238,134 @@
   (lsp-ui-doc-enable t)
   (lsp-ui-imenu-enable t))
 
-;; Use pyvenv to manage Python virtual environments
 (use-package pyvenv
-  :ensure t
   :config
   (setenv "WORKON_HOME" "~/.virtualenvs")
   (pyvenv-tracking-mode 1))
 
-;; Install and configure flycheck for Python
-(use-package flycheck
-  :ensure t
-  :init (global-flycheck-mode)
-  :hook (python-mode . flycheck-mode))
-
-;; Install and configure company for Python
 (use-package company
-  :ensure t
   :hook (python-mode . company-mode)
   :custom
   (company-idle-delay 0.0)
   (company-minimum-prefix-length 1)
   :bind (:map company-active-map
+              ("M-n" . nil)
+              ("M-p" . nil)
               ("C-n" . company-select-next)
               ("C-p" . company-select-previous)
-              ("M-<" . company-select-first)
-              ("M->" . company-select-last)))
+              :map company-search-map
+              ("C-n" . company-select-next)
+              ("C-p" . company-select-previous)))
 
-;; Install and configure yasnippet for Python
+(use-package flycheck
+  :hook (python-mode . flycheck-mode))
+
 (use-package yasnippet
-  :ensure t
-  :config
-  (yas-reload-all)
-  (add-hook 'python-mode-hook #'yas-minor-mode))
+  :hook (python-mode . yas-minor-mode))
 
-;; Optional: Use black for automatic code formatting
 (use-package blacken
-  :ensure t
-  :hook (python-mode . blacken-mode)
-  :custom
-  (blacken-line-length 88))
+  :hook (python-mode . blacken-mode))
 
-;; Optional: Use isort for import sorting
-(use-package py-isort
-  :ensure t
-  :hook (before-save . py-isort-before-save))
+(use-package ein)
 
-;; Keybindings specific to python-mode
-(use-package python
-  :ensure nil
-  :bind (:map python-mode-map
-              ("C-c C-f" . lsp-format-buffer)
-              ("C-c C-r" . lsp-rename)))
-
-;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-;; Python-specific flycheck configuration
-(use-package flycheck-pycheckers
-  :ensure t
-  :after flycheck
-  :init (setq flycheck-pycheckers-checkers '(mypy3 pyflakes))
-  :config
-  (add-hook 'flycheck-mode-hook #'flycheck-pycheckers-setup))
-
-;; Optional: Integration with Jupyter notebooks via ein
-(use-package ein
-  :ensure t
-  :config
-  (setq ein:use-auto-complete-superpack t))
-
-;;; End of Python Development Setup
-
-;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-;; Bash support
+;; Bash development setup
 (use-package sh-script
-  :mode ("\\.sh\\'" . sh-mode)
-  :config
-  (add-hook 'sh-mode-hook 'lsp-deferred))
-
-(use-package bash-completion
-  :ensure t
-  :config
-  (bash-completion-setup))
+  :ensure nil
+  :hook (sh-mode . lsp-deferred))
 
 (use-package lsp-mode
-  :commands lsp
   :hook (sh-mode . lsp-deferred)
   :custom
-  (lsp-clients-bash-language-server-command '("bash-language-server" "start")))
+  (lsp-bash-highlight-parsing-errors t))
 
-;; Hook `company-mode` and `bash-completion` with `sh-mode`
-(defun setup-sh-mode ()
-  (company-mode)
-  (bash-completion-setup)
-  (lsp-deferred))
+(use-package company
+  :hook (sh-mode . company-mode)
+  :custom
+  (company-idle-delay 0.2)
+  (company-minimum-prefix-length 2))
 
-(add-hook 'sh-mode-hook 'setup-sh-mode)
+(use-package bash-completion)
 
-;;; End of Bash support
+;; Arduino development setup
+(use-package arduino-mode)
 
-;; Custom-set variables and faces
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-enabled-themes nil)
- '(package-selected-packages
-   '(airline-themes powerline bash-completion smex nov nose ivy-hydra counsel yasnippet toml-mode rustic rust-playground pdf-tools lsp-ui flycheck exec-path-from-shell company)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+(use-package arduino-cli-mode
+  :after arduino-mode
+  :config
+  (setq arduino-cli-mode-arduino-executable "arduino-cli")
+  (setq arduino-cli-mode-sketch-directory "/path/to/sketches"))
 
-;; Additional general configuration
-(require 'powerline)
-(powerline-default-theme)
-(require 'airline-themes)
-(load-theme 'airline-jellybeans t)
+(defun my-compile-arduino-sketch ()
+  "Compile the current Arduino sketch."
+  (interactive)
+  (let ((command (format "arduino-cli compile --fqbn <board_fqbn> %s"
+                         (file-name-directory (buffer-file-name)))))
+    (compile command)))
 
-(tool-bar-mode -1)
-(menu-bar-mode -1)
-(scroll-bar-mode -1)
-(xterm-mouse-mode t)
-(global-display-line-numbers-mode 1)
-(setq make-backup-files nil) ; stop creating ~ files
+(defun my-upload-arduino-sketch ()
+  "Upload the current Arduino sketch."
+  (interactive)
+  (let ((command (format "arduino-cli upload -p <port> --fqbn <board_fqbn> %s"
+                         (file-name-directory (buffer-file-name)))))
+    (compile command)))
+
+;; Miscellaneous packages
+(use-package pdf-tools
+  :config (pdf-tools-install))
+
+(use-package nov
+  :mode ("\\.epub\\'" . nov-mode))
+
+(use-package smex)
+
+(use-package ivy-hydra)
+
+(use-package counsel)
+
+;; Custom functions
+(defun gopar/consult-line ()
+  "Improved `consult-line` with regex support."
+  (interactive)
+  (consult-line))
+
+;; Treemacs and Treemacs All-The-Icons
+(use-package treemacs
+  :ensure t
+  :defer t
+  :init
+  (with-eval-after-load 'winum
+    (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+  :config
+  (setq treemacs-is-never-other-window t
+        treemacs-collapse-dirs (if treemacs-python-executable 3 0)
+        treemacs-sorting 'alphabetic-case-insensitive-asc
+        treemacs-follow-after-init t
+        treemacs-width 30
+        treemacs-indentation 2
+        treemacs-indentation-string " "
+        treemacs-no-png-images nil
+        treemacs-recenter-after-file-follow 'always
+        treemacs-recenter-after-tag-follow 'always
+        treemacs-file-event-delay 5000
+        treemacs-file-follow-delay 0.2
+        treemacs-follow-recenter-distance 0.1)
+  (treemacs-filewatch-mode t)
+  (treemacs-follow-mode t)
+  (treemacs-fringe-indicator-mode t)
+  :bind
+  (:map global-map
+        ("M-0"       . treemacs-select-window)
+        ("C-x t 1"   . treemacs-delete-other-windows)
+        ("C-x t t"   . treemacs)
+        ("C-x t B"   . treemacs-bookmark)
+        ("C-x t C-t" . treemacs-find-file)
+        ("C-x t M-t" . treemacs-find-tag)))
+
+(use-package treemacs-all-the-icons
+  :ensure t
+  :after treemacs
+  :config (treemacs-load-theme "all-the-icons"))
+
 
 (provide 'init)
 ;;; init.el ends here
-
