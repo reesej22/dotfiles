@@ -103,6 +103,17 @@
 
 (setq vertico-cycle t)
 
+;; Add which-key for keybinding suggestions
+(use-package which-key
+  :config
+  (which-key-mode)
+  (setq which-key-idle-delay 0.5))
+
+;; Which-key-posframe
+(use-package which-key-posframe
+  :config
+  (which-key-posframe-mode 1))
+
 ;; Flycheck for syntax checking
 (use-package flycheck
   :init (global-flycheck-mode))
