@@ -377,6 +377,54 @@
   :after treemacs
   :config (treemacs-load-theme "all-the-icons"))
 
+;; Load Common Lisp environment
+(use-package slime
+  :init
+  (setq inferior-lisp-program "/usr/bin/sbcl")
+  :config
+  (slime-setup '(slime-fancy slime-company))
+  (add-hook 'slime-mode-hook 'company-mode)
+  (add-hook 'slime-repl-mode-hook 'company-mode)
+  (setq slime-company-completion 'fuzzy
+        slime-company-after-completion 'slime-company-just-one-space))
+
+;; Load slime-company for better completion
+(use-package slime-company
+  :after (slime company)
+  :config
+  (setq slime-company-completion 'fuzzy
+        slime-company-after-completion 'slime-company-just-one-space))
+
+;; Enable company-mode for auto-completion
+(use-package company
+  :config
+  (setq company-idle-delay 0.2)
+  (setq company-minimum-prefix-length 1)
+  (global-company-mode t))
+
+;; Enable company-quickhelp for inline documentation
+(use-package company-quickhelp
+  :after company
+  :config
+  (company-quickhelp-mode))
+
+;; Enable rainbow delimiters for better readability
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+;; Paredit for structured editing of Lisp code
+(use-package paredit
+  :hook ((emacs-lisp-mode lisp-mode) . paredit-mode))
+
+;; Enable electric-pair-mode for auto-closing brackets and quotes
+(electric-pair-mode 1)
+
+;; Add key bindings for SLIME
+(global-set-key (kbd "C-c s") 'slime)
+(global-set-key (kbd "C-c C-s") 'slime-selector)
+
+;; Show matching parentheses
+(show-paren-mode 1)
 
 (provide 'init)
 ;;; init.el ends here
