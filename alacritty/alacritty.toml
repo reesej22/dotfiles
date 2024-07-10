@@ -1,5 +1,5 @@
 import = [
-  "/usr/local/lib/node_modules/alacritty-themes/themes/vscode.dark.toml"
+  "/usr/local/lib/node_modules/alacritty-themes/themes/One-Dark.toml"
 ]
 
 [shell]
@@ -9,11 +9,13 @@ program = "/bin/bash"
 TERM = "xterm-256color"
 
 [window]
-opacity = 0.8
+dimensions = { columns = 95, lines = 45 }
+decorations = "Full"
+opacity = 0.9
 blur = true
-padding = {x = 10, y = 10}
 startup_mode = "Windowed"
 dynamic_title = true
+padding = { x = 5, y = 5 }
 
 [scrolling]
 history = 10000
@@ -21,7 +23,10 @@ multiplier = 4
 
 [font]
 normal.family = "Hack Nerd Font Mono"
-size = 14
+bold.family = "Hack Nerd Font Mono"
+italic.family = "Hack Nerd Font Mono"
+bold_italic.family = "Hack Nerd Font Mono"
+size = 13
 builtin_box_drawing = true
 
 [bell]
@@ -36,3 +41,23 @@ save_to_clipboard = true
 
 [mouse]
 hide_when_typing = true
+
+[cursor]
+style = "Block"
+
+[terminal]
+osc52 = "CopyPaste"
+
+[[hints.enabled]]
+command = "xdg-open" # On Linux/BSD
+hyperlinks = true
+post_processing = true
+persist = false
+mouse.enabled = true
+binding = { key = "U", mods = "Control|Shift" }
+regex = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+"
+
+[keyboard]
+bindings = [
+{ key = "N", mods = "Control|Shift", action = "CreateNewWindow" },
+]
