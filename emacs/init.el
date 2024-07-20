@@ -5,8 +5,6 @@
 ;; Version: 0.2
 ;; Keywords: convenience
 ;;; Code:
-;; Increase garbage collection threshold during startup
-(setq gc-cons-threshold most-positive-fixnum)
 (require 'package)
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
@@ -21,26 +19,6 @@
 (add-hook 'emacs-startup-hook
 	  (lambda ()
 	    (setq gc-cons-threshold (expt 2 23))))
-
-(defun loadup-gen ()
-  "Generate the lines to include in the lisp/loadup.el file
-to place all of the libraries that are loaded by your InitFile
-into the main dumped emacs"
-  (interactive)
-  (defun get-loads-from-*Messages* ()
-    (save-excursion
-      (let ((retval ()))
-	(set-buffer "*Messages*")
-	(beginning-of-buffer)
-	(while (search-forward-regexp "^Loading " nil t)
-	  (let ((start (point)))
-	    (search-forward "...")
-	    (backward-char 3)
-	    (setq retval (cons (buffer-substring-no-properties start (point)) retval))))
-	retval)))
-  (map 'list
-       (lambda (file) (princ (format "(load \"%s\")\n" file)))
-       (get-loads-from-*Messages*)))
 
 ;; Enable relative line numbers only in prog-mode
 (add-hook 'prog-mode-hook (lambda () (display-line-numbers-mode t)
@@ -124,13 +102,7 @@ into the main dumped emacs"
 (evil-define-key 'normal 'global (kbd "<leader>q") 'kill-buffer)
 (evil-define-key 'normal 'global (kbd "<leader>w") 'save-buffer)
 (evil-define-key 'normal 'global (kbd "<leader>o") 'neotree-toggle)
-(use-package evil
-  :ensure t
-  :init
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil)
-  :config
-  (evil-mode 1))
+
 (use-package evil-collection
   :after evil
   :ensure t
