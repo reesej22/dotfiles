@@ -19,7 +19,7 @@ set nocompatible
 set clipboard=autoselectplus
 
 "" Backspace
-set backspace=3
+set backspace=indent,eol,nostop
 
 "" Mouse
 set mouse=a
