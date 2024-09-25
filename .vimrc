@@ -223,6 +223,7 @@ nnoremap <leader>m zM<CR>
 "" guioptions
 if has("gui_running")
     set guioptions+=d
+    set guioptions+=a
     set guioptions-=T
     set guioptions-=l
     set guioptions-=b
