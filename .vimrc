@@ -12,6 +12,9 @@
 """"""""""""""""""""""
 "  General Settings  "
 """"""""""""""""""""""
+"" Load Defaults
+source $VIMRUNTIME/defaults.vim
+
 "" Compatibility with vi
 set nocompatible
 
