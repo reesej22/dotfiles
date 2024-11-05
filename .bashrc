@@ -30,10 +30,10 @@ export FZF_COMPLETION_OPTS='--border --info=inline'
 
 # Set Vim as MANPAGER
 # export MANPAGER="bat -l man -p'"
-export MANPAGER="vim +MANPAGER --not-a-term -"
+export MANPAGER="nvim +Man!"
 
 # Set Vim as EDITOR
-export EDITOR="vim"
+export EDITOR="nvim"
 
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return
