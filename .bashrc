@@ -23,10 +23,9 @@ eval "$(fzf --bash)"
 export FZF_DEFAULT_COMMAND='fd --type f --hidden'
 
 # Default Opt
-export FZF_DEFAULT_OPTS='--preview "bat --style=numbers --color=always --line-range :500 {}"'
-
-# Options to fzf command
-export FZF_COMPLETION_OPTS='--border --info=inline'
+export FZF_DEFAULT_OPTS="--preview 'file {}' --preview-window up,1,border-horizontal \
+    --bind 'ctrl-/:change-preview-window(50%|hidden|)' \
+    --color 'fg:#bbccdd,fg+:#ddeeff,bg:#334455,preview-bg:#223344,border:#778899'"
 
 # Set Vim as MANPAGER
 # export MANPAGER="bat -l man -p'"
