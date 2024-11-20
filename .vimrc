@@ -1,4 +1,4 @@
-"---------------------------------------------------"
+  "---------------------------------------------------"
 "                                                   "
 "       ██╗   ██╗██╗███╗   ███╗██████╗  ██████╗     "
 "       ██║   ██║██║████╗ ████║██╔══██╗██╔════╝     "
@@ -14,6 +14,10 @@
 """"""""""""""""""""""
 "" Load Defaults
 source $VIMRUNTIME/defaults.vim
+
+"" Leader Keys
+let g:mapleader = "\<Space>"
+let g:maplocalleader = ','
 
 "" Compatibility with vi
 set nocompatible
@@ -54,6 +58,7 @@ set encoding=utf-8
 
 "" Terminal Rendering
 set ttyfast
+set timeoutlen=500
 
 "" Error Bells
 set noerrorbells
@@ -62,7 +67,7 @@ set vb t_vb=
 "" Indentations
 set autoindent
 set smartindent
-set list listchars=tab:»-,lead:·,extends:»,precedes:«
+set list listchars=tab:»-,lead:·,extends:»,precedes:«,trail:·,nbsp:␣
 
 "" Tabs
 set tabstop=4
@@ -88,8 +93,6 @@ colorscheme retrobox
 "" Spelling
 set spelllang=en_us
 set spellsuggest=best
-nnoremap <leader>s :set spell<CR>
-nnoremap <leader>S :set nospell<CR>
 
 """""""""""""""""
 "  Vim Plugins  "
@@ -112,22 +115,18 @@ call vundle#begin()
     Plugin 'mattn/vim-lsp-settings'
     Plugin 'mattn/emmet-vim'
     Plugin 'liuchengxu/vim-which-key'
+    Plugin 'vim-airline/vim-airline'
+    Plugin 'vim-airline/vim-airline-themes'
 call vundle#end()
 
 filetype plugin indent on    " Requred for Vundle
 
 "" Vim-Airline Settings
-" let g:airline#extensions#tabline#enabled = 1
-" let g:airline#extensions#tabline#formatter = 'default'
 let g:airline_theme='distinguished'
 
 "" Syntastic
 let g:syntastic_check_on_open = 1
 let g:systastic_enble_balloons = 1
-
-"" NerdTree
-nnoremap <leader>n :NERDTreeFocus<CR>
-nnoremap <leader>t :NERDTreeToggle<CR>
 
 "" Fzf
 let g:fzf_vim={}
@@ -144,8 +143,6 @@ let g:user_emmet_leader_key=','
 autocmd FileType html setlocal tabstop=2 shiftwidth=2 softtabstop=2
 
 "" Which-key Settings
-let g:mapleader = "\<Space>"
-let g:maplocalleader = ','
 nnoremap <silent> <leader>      :<c-u>WhichKey '<Space>'<CR>
 nnoremap <silent> <localleader> :<c-u>WhichKey  ','<CR>
 let g:which_key_map = {}
@@ -176,6 +173,14 @@ let g:which_key_map.n = {
       \ 'n' : ['NERDTree'       , 'NERD Tree']         ,
       \ 't' : ['NERDTreeToggle' , 'NERD Toggle']       ,
       \ }
+let g:which_key_map.p = {
+      \ 'name' : '+Spell' ,
+      \ 's'    : ['set spell'   , 'Spell Check']       ,
+      \ 'n'    : ['set nospell' , 'No Spell Check']    ,
+      \ 'g'    : ['spellgood'   , 'Add Word as Good']  ,
+      \ 'r'    : ['spellwrong'  , 'Add Word as Bad']   ,
+      \ 'u'    : ['spellundo'   , 'Undo Spellgood']    ,
+      \ }
 let g:which_key_map.w = {
       \ 'name' : '+windows' ,
       \ 'w' : ['<C-W>w'     , 'other-window']          ,
@@ -196,11 +201,53 @@ let g:which_key_map.w = {
       \ 'v' : ['<C-W>v'     , 'split-window-below']    ,
       \ '?' : ['Windows'    , 'fzf-window']            ,
       \ }
+let g:which_key_map.z = {
+      \ 'name' : '+Folds' ,
+      \ 'a'    : ['zz'          , 'Toggle Fold']       ,
+      \ 'c'    : ['zc'          , 'Close Fold']        ,
+      \ 'd'    : ['zd'          , 'Delete Fold']       ,
+      \ 'e'    : ['zE'          , 'Eliminate Folds']   ,
+      \ 'f'    : ['zF'          , 'Create Fold']       ,
+      \ 'm'    : ['zM'          , 'Foldlevel 0']       ,
+      \ 'o'    : ['zo'          , 'Open Fold']         ,
+      \ 'r'    : ['zR'          , 'Foldlevel Max']     ,
+      \ }
 call which_key#register('<Space>', "g:which_key_map")
 
 """""""""""""""""""
 "  Vim Functions  "
 """""""""""""""""""
+"" Vim-LSP
+function! s:on_lsp_buffer_enabled() abort
+    setlocal omnifunc=lsp#complete
+    setlocal signcolumn=yes
+    if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
+    nmap <buffer> gd <plug>(lsp-definition)
+    nmap <buffer> gs <plug>(lsp-document-symbol-search)
+    nmap <buffer> gS <plug>(lsp-workspace-symbol-search)
+    nmap <buffer> gr <plug>(lsp-references)
+    nmap <buffer> gi <plug>(lsp-implementation)
+    nmap <buffer> gt <plug>(lsp-type-definition)
+    nmap <buffer> <leader>rn <plug>(lsp-rename)
+    nmap <buffer> [g <plug>(lsp-previous-diagnostic)
+    nmap <buffer> ]g <plug>(lsp-next-diagnostic)
+    nmap <buffer> K <plug>(lsp-hover)
+    nnoremap <buffer> <expr><c-f> lsp#scroll(+4)
+    nnoremap <buffer> <expr><c-d> lsp#scroll(-4)
+
+    let g:lsp_format_sync_timeout = 1000
+    autocmd! BufWritePre *.rs,*.go call execute('LspDocumentFormatSync')
+    
+    " refer to doc to add more commands
+endfunction
+
+"" Auto Install LSP
+augroup lsp_install
+    au!
+    " call s:on_lsp_buffer_enabled only for languages that has the server registered.
+    autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
+augroup END
+
 "" Delete trailing white space on save, useful for some filetypes ;)
 fun! CleanExtraSpaces()
     let save_cursor = getpos(".")
@@ -270,8 +317,6 @@ augroup fold_vimrc
       \ setlocal foldtext=VimFoldText() |
      "\ set foldcolumn=2 foldminlines=2
 augroup END
-nnoremap <leader>r zR<CR>
-nnoremap <leader>m zM<CR>
 
 """""""""""""""""""
 "  Gvim Settings  "
