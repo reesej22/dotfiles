@@ -203,7 +203,7 @@ let g:which_key_map.w = {
       \ }
 let g:which_key_map.z = {
       \ 'name' : '+Folds' ,
-      \ 'a'    : ['zz'          , 'Toggle Fold']       ,
+      \ 'a'    : ['za'          , 'Toggle Fold']       ,
       \ 'c'    : ['zc'          , 'Close Fold']        ,
       \ 'd'    : ['zd'          , 'Delete Fold']       ,
       \ 'e'    : ['zE'          , 'Eliminate Folds']   ,
