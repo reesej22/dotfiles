@@ -28,8 +28,8 @@ export FZF_DEFAULT_OPTS="--preview 'file {}' --preview-window up,1,border-horizo
     --color 'fg:#bbccdd,fg+:#ddeeff,bg:#334455,preview-bg:#223344,border:#778899'"
 
 # Set Vim as MANPAGER
-# export MANPAGER="bat -l man -p'"
-export MANPAGER="nvim +Man!"
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+man 2 select
 
 # Set Vim as EDITOR
 export EDITOR="nvim"
