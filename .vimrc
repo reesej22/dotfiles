@@ -265,19 +265,17 @@ let g:which_key_map.p = {
 let g:which_key_map.s = {
   \ 'name' : '+FZF' ,
   \ 'b' : ['Buffers'               , 'Buffers']          ,
-  \ 'c' : ['Commands'              , 'Commands']         ,
   \ 'C' : ['Changes'               , 'Changes']          ,
   \ 'f' : ['Files'                 , 'Files']            ,
   \ 'g' : ['GFiles'                , 'Git Files']        ,
   \ 'h' : ['History'               , 'History']          ,
-  \ '?' : ['Helptags'              , 'Help Tags']        ,
-  \ ':' : ['History:'              , 'CMD History']      ,
-  \ '/' : ['History/'              , 'Search History']   ,
   \ 'l' : ['Lines'                 , 'Lines']            ,
   \ 'm' : ['Maps'                  , 'Maps']             ,
   \ 'r' : ['Rg'                    , 'RipGrep']          ,
   \ 's' : ['Colors'                , 'Colorschemes']     ,
   \ 'w' : ['Windows'               , 'FZF Windows']      ,
+  \ 'x' : ['Commands'              , 'Commands']         ,
+  \ '?' : ['Helptags'              , 'Help Tags']        ,
   \ }
 let g:which_key_map.w = {
   \ 'name' : '+windows' ,
