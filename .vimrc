@@ -157,7 +157,7 @@ imap <c-x><c-f> <plug>(fzf-complete-path)
 imap <c-x><c-l> <plug>(fzf-complete-line)
 
 " Path completion with custom source command
-" inoremap <expr> <c-x><c-f> fzf#vim#complete#path(fdfind)
+" inoremap <expr> <c-x><c-f> fzf#vim#complete#path('fdfind')
 inoremap <expr> <c-x><c-f> fzf#vim#complete#path('rg --files')
 
 " Word completion with custom spec with popup layout option
