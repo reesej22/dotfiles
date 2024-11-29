@@ -140,13 +140,11 @@ let g:fzf_vim = {}
 
 " Default: Use quickfix list
 let g:fzf_vim.listproc = { list -> fzf#vim#listproc#quickfix(list) }
-
-
-let g:fzf_vim.listproc = { list -> fzf#vim#listproc#location(list) }
+" let g:fzf_vim.listproc = { list -> fzf#vim#listproc#location(list) }
 
 " Command-wise customization
 let g:fzf_vim.listproc_ag = { list -> fzf#vim#listproc#quickfix(list) }
-let g:fzf_vim.listproc_rg = { list -> fzf#vim#listproc#location(list) }
+" let g:fzf_vim.listproc_rg = { list -> fzf#vim#listproc#location(list) }
 
 " Mapping selecting mappings
 nmap <leader><tab> <plug>(fzf-maps-n)
@@ -159,6 +157,7 @@ imap <c-x><c-f> <plug>(fzf-complete-path)
 imap <c-x><c-l> <plug>(fzf-complete-line)
 
 " Path completion with custom source command
+" inoremap <expr> <c-x><c-f> fzf#vim#complete#path(fdfind)
 inoremap <expr> <c-x><c-f> fzf#vim#complete#path('rg --files')
 
 " Word completion with custom spec with popup layout option
