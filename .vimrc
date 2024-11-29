@@ -43,6 +43,9 @@ set cursorline
 :highlight Cursorline cterm=bold ctermbg=black
 set showmatch
 
+"" Sign Column
+set signcolumn="yes"
+
 "" Menu
 set wildmenu
 
@@ -78,7 +81,7 @@ set ignorecase
 set smartcase
 set incsearch
 set hlsearch
-nnoremap <leader>\ :nohlsearch<CR>
+nnoremap <Esc><Esc> :nohlsearch<CR>
 
 "" Colors
 set t_Co=256
@@ -90,57 +93,121 @@ colorscheme retrobox
 set spelllang=en_us
 set spellsuggest=best
 
+"" Windows Quick Keys
+nnoremap <C-h> <C-w>h<CR>
+nnoremap <C-j> <C-w>j<CR>
+nnoremap <C-k> <C-w>k<CR>
+nnoremap <C-l> <C-w>l<CR>
+nnoremap <C-Q> :bdelete %<CR>
+nnoremap <silent>\ :NERDTreeToggle<CR>
+
 """""""""""""""""
 "  Vim Plugins  "
 """""""""""""""""
-"" Ensure that Vundle is installed
-function! EnsureVundle()
-  " Check if Vundle is installed
-  if !isdirectory(expand("~/.vim/bundle/Vundle.vim"))
-    echo "Vundle is not installed. Installing now..."
-    silent! execute "!git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim"
-    if v:shell_error
-      echoerr "Failed to clone Vundle. Please check your Git configuration."
-    else
-      echo "Vundle installed successfully!"
-    endif
+"" Vim-Plug
+call plug#begin()
+  Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+  Plug 'junegunn/fzf.vim'
+  Plug 'dense-analysis/ale'
+  Plug 'prabirshrestha/vim-lsp'
+  Plug 'rhysd/vim-lsp-ale'
+  Plug 'prabirshrestha/asyncomplete.vim'
+  Plug 'prabirshrestha/asyncomplete-lsp.vim'
+  Plug 'prabirshrestha/asyncomplete-emmet.vim'
+  Plug 'mattn/vim-lsp-settings'
+  Plug 'mattn/emmet-vim'
+  Plug 'liuchengxu/vim-which-key'
+  Plug 'LunarWatcher/auto-pairs'
+  Plug 'tpope/vim-fugitive'
+  Plug 'preservim/nerdtree'
+  Plug 'vim-airline/vim-airline'
+  Plug 'vim-airline/vim-airline-themes'
+call plug#end()
+
+"" Vim Airline
+let g:airline_theme='angr'
+let g:airline#extensions#fzf#enabled = 1
+let g:airline#extensions#ale#enabled = 1
+let g:airline#extensions#lsp#enabled = 1
+let g:airline#extensions#nerdtree_statusline = 1
+
+"" Vim Ale
+let g:ale_disable_lsp = 'auto'
+
+"" FZF Config
+let g:fzf_vim = {}
+
+" Default: Use quickfix list
+let g:fzf_vim.listproc = { list -> fzf#vim#listproc#quickfix(list) }
+
+
+let g:fzf_vim.listproc = { list -> fzf#vim#listproc#location(list) }
+
+" Command-wise customization
+let g:fzf_vim.listproc_ag = { list -> fzf#vim#listproc#quickfix(list) }
+let g:fzf_vim.listproc_rg = { list -> fzf#vim#listproc#location(list) }
+
+" Mapping selecting mappings
+nmap <leader><tab> <plug>(fzf-maps-n)
+xmap <leader><tab> <plug>(fzf-maps-x)
+omap <leader><tab> <plug>(fzf-maps-o)
+
+" Insert mode completion
+imap <c-x><c-k> <plug>(fzf-complete-word)
+imap <c-x><c-f> <plug>(fzf-complete-path)
+imap <c-x><c-l> <plug>(fzf-complete-line)
+
+" Path completion with custom source command
+inoremap <expr> <c-x><c-f> fzf#vim#complete#path('fdfind')
+inoremap <expr> <c-x><c-f> fzf#vim#complete#path('rg --files')
+
+" Word completion with custom spec with popup layout option
+inoremap <expr> <c-x><c-k> fzf#vim#complete#word({'window': { 'width': 0.2, 'height': 0.9, 'xoffset': 1 }})
+
+" Global line completion (not just open buffers. ripgrep required.)
+inoremap <expr> <c-x><c-l> fzf#vim#complete(fzf#wrap({
+  \ 'prefix': '^.*$',
+  \ 'source': 'rg -n ^ --color always',
+  \ 'options': '--ansi --delimiter : --nth 3..',
+  \ 'reducer': { lines -> join(split(lines[0], ':\zs')[2:], '') }}))
+
+function! s:make_sentence(lines)
+  return substitute(join(a:lines), '^.', '\=toupper(submatch(0))', '').'.'
+endfunction
+
+" Word Search
+inoremap <expr> <c-x><c-s> fzf#vim#complete({
+  \ 'source':  'batcat /usr/share/dict/words',
+  \ 'reducer': function('<sid>make_sentence'),
+  \ 'options': '--multi --reverse --margin 15%,0',
+  \ 'left':    20})
+
+"" Delete trailing white space on save, useful for some filetypes ;)
+fun! CleanExtraSpaces()
+  let save_cursor = getpos(".")
+  let old_query = getreg('/')
+  silent! %s/\s\+$//e
+  call setpos('.', save_cursor)
+  call setreg('/', old_query)
+endfun
+
+"" Function to set tab settings based on file type
+function! SetFileTypeSettings()
+  if &filetype == 'python'
+    set tabstop=4 shiftwidth=4 expandtab
+  elseif &filetype == 'bash'
+    set tabstop=4 shiftwidth=4 noexpandtab
+  elseif &filetype == 'c' || 'cpp' || 'zig'
+    set tabstop=4 shiftwidth=4 expandtab
+  elseif &filetype == 'html' || &filetype == 'css' || &filetype == 'javascript'
+    set tabstop=2 shiftwidth=2 expandtab
+  elseif &filetype == 'vim' || 'lua'
+    set tabstop=2 shiftwidth=2 expandtab
   endif
 endfunction
 
-" Call the function before plugin initialization
-call EnsureVundle()
-
-"" Vundle Setup
-filetype off                 " Required for Vundle
-set rtp+=~/.vim/bundle/Vundle.vim
-
-call vundle#begin()
-  Plugin 'VundleVim/Vundle.vim'
-  Plugin 'vim-airline/vim-airline'
-  Plugin 'vim-airline/vim-airline-themes'
-  Plugin 'tpope/vim-fugitive'
-  Plugin 'preservim/nerdtree'
-  Plugin 'vim-syntastic/syntastic'
-  Plugin 'junegunn/fzf', { 'do' : { -> fzf#install() }}
-  Plugin 'junegunn/fzf.vim'
-  Plugin 'prabirshrestha/vim-lsp'
-  Plugin 'prabirshrestha/asyncomplete.vim'
-  Plugin 'prabirshrestha/asyncomplete-lsp.vim'
-  Plugin 'prabirshrestha/asyncomplete-emmet.vim'
-  Plugin 'mattn/vim-lsp-settings'
-  Plugin 'mattn/emmet-vim'
-  Plugin 'liuchengxu/vim-which-key'
-  Plugin 'LunarWatcher/auto-pairs'
-call vundle#end()
-
-filetype plugin indent on    " Requred for Vundle
-
-"" Syntastic
-let g:syntastic_check_on_open = 1
-let g:systastic_enble_balloons = 1
-
-"" Fzf
-let g:fzf_vim={}
+"" Use an autocommand to trigger the function
+autocmd FileType * call SetFileTypeSettings()
 
 "" Asyncomplete
 imap <c-space> <Plug>(asyncomplete_force_refresh)
@@ -168,15 +235,6 @@ let g:which_key_map.b = {
   \ 'p' : ['bprevious'             , 'previous-buffer']  ,
   \ '?' : ['Buffers'               , 'fzf-buffer']       ,
   \ }
-let g:which_key_map.f = {
-  \ 'name' : '+FZF' ,
-  \ 'b' : ['Buffers'               , 'FZF Buffers']      ,
-  \ 'c' : ['Commands'              , 'FZF Commands']     ,
-  \ 'f' : ['Files'                 , 'FZF Files']        ,
-  \ 'l' : ['Lines'                 , 'FZF Lines']        ,
-  \ 's' : ['Colors'                , 'Colorschemes']     ,
-  \ 'w' : ['Windows'               , 'FZF Windows']      ,
-  \ }
 let g:which_key_map.l = {
   \ 'name' : '+LSP' ,
   \ 'c' : ['LspCodeLens'           , 'Code Lens']        ,
@@ -202,6 +260,23 @@ let g:which_key_map.p = {
   \ 'g' : ['spellgood'             , 'Add Word as Good'] ,
   \ 'r' : ['spellwrong'            , 'Add Word as Wrong'],
   \ 'u' : ['spellundo'             , 'Undo Spellgood']   ,
+  \ }
+let g:which_key_map.s = {
+  \ 'name' : '+FZF' ,
+  \ 'b' : ['Buffers'               , 'Buffers']          ,
+  \ 'c' : ['Commands'              , 'Commands']         ,
+  \ 'C' : ['Changes'               , 'Changes']          ,
+  \ 'f' : ['Files'                 , 'Files']            ,
+  \ 'g' : ['GFiles'                , 'Git Files']        ,
+  \ 'h' : ['History'               , 'History']          ,
+  \ '?' : ['Helptags'              , 'Help Tags']        ,
+  \ ':' : ['History:'              , 'CMD History']      ,
+  \ '/' : ['History/'              , 'Search History']   ,
+  \ 'l' : ['Lines'                 , 'Lines']            ,
+  \ 'm' : ['Maps'                  , 'Maps']             ,
+  \ 'r' : ['Rg'                    , 'RipGrep']          ,
+  \ 's' : ['Colors'                , 'Colorschemes']     ,
+  \ 'w' : ['Windows'               , 'FZF Windows']      ,
   \ }
 let g:which_key_map.w = {
   \ 'name' : '+windows' ,
@@ -253,7 +328,7 @@ function! s:on_lsp_buffer_enabled() abort
   nmap <buffer> K <plug>(lsp-hover)
   nnoremap <buffer> <expr><c-f> lsp#scroll(+4)
   nnoremap <buffer> <expr><c-d> lsp#scroll(-4)
-  
+
   let g:lsp_format_sync_timeout = 1000
   autocmd! BufWritePre *.rs,*.go call execute('LspDocumentFormatSync')
 " refer to doc to add more commands
@@ -265,39 +340,20 @@ augroup lsp_install
   autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
 augroup END
 
-"" Delete trailing white space on save, useful for some filetypes ;)
-fun! CleanExtraSpaces()
-  let save_cursor = getpos(".")
-  let old_query = getreg('/')
-  silent! %s/\s\+$//e
-  call setpos('.', save_cursor)
-  call setreg('/', old_query)
-endfun
-
-"" Function to set tab settings based on file type
-function! SetFileTypeSettings()
-  if &filetype == 'python'
-    set tabstop=4 shiftwidth=4 expandtab
-  elseif &filetype == 'bash'
-    set tabstop=4 shiftwidth=4 noexpandtab
-  elseif &filetype == 'c'
-    set tabstop=8 shiftwidth=8 noexpandtab
-  elseif &filetype == 'html' || &filetype == 'css' || &filetype == 'javascript'
-    set tabstop=2 shiftwidth=2 expandtab
-  elseif &filetype == 'vim'
-    set tabstop=2 shiftwidth=2 expandtab
-  endif
+"" Git Status
+function! GitBranch()
+  return system("git rev-parse --abbrev-ref HEAD 2>/dev/null | tr -d '\n'")
 endfunction
 
-"" Use an autocommand to trigger the function
-autocmd FileType * call SetFileTypeSettings()
+function! StatuslineGit()
+  let l:branchname = GitBranch()
+  return strlen(l:branchname) > 0?'  '.l:branchname.' ':''
+endfunction
 
 """"""""""""""""""""""""
 " Auto Folding Config  "
 """"""""""""""""""""""""
 "" Autofolding .vimrc
-" see http://vimcasts.org/episodes/writing-a-custom-fold-expression/
-""" defines a foldlevel for each line of code
 function! VimFolds(lnum)
   let s:thisline = getline(a:lnum)
   if match(s:thisline, '^"" ') >= 0
@@ -344,14 +400,14 @@ function! VimFoldText()
 endfunction
 
 """ set foldsettings automatically for vim files
-augroup fold_vimrc
-  autocmd!
-  autocmd FileType vim
-      \ setlocal foldmethod=expr |
-      \ setlocal foldexpr=VimFolds(v:lnum) |
-      \ setlocal foldtext=VimFoldText() |
-     "\ set foldcolumn=2 foldminlines=2
-augroup END
+"augroup fold_vimrc
+"  autocmd!
+"  autocmd FileType vim
+"      \ setlocal foldmethod=expr |
+"      \ setlocal foldexpr=VimFolds(v:lnum) |
+"      \ setlocal foldtext=VimFoldText() |
+"     "\ set foldcolumn=2 foldminlines=2
+"augroup END
 
 """""""""""""""""""
 "  Gvim Settings  "
