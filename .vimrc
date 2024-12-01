@@ -15,6 +15,9 @@
 "" Compatibility with vi
 set nocompatible
 
+"" Manpager Script
+runtime ftplugin/man.vim
+
 "" Set Leader Keys
 let g:mapleader = "\<Space>"
 let g:maplocalleader = ','
@@ -58,6 +61,7 @@ set encoding=utf-8
 
 "" Terminal Rendering
 set ttyfast
+set timeoutlen=300
 
 "" Error Bells
 set noerrorbells
@@ -87,20 +91,11 @@ nnoremap <Esc><Esc> :nohlsearch<CR>
 set t_Co=256
 set background=dark
 set termguicolors
-colorscheme retrobox
+colorscheme slate
 
 "" Spelling
 set spelllang=en_us
 set spellsuggest=best
-
-"" Windows Quick Keys
-nnoremap <C-h> <C-w>h<CR>
-nnoremap <C-j> <C-w>j<CR>
-nnoremap <C-k> <C-w>k<CR>
-nnoremap <C-l> <C-w>l<CR>
-nnoremap <C-q> :bdelete %<CR>
-nnoremap <C-t> :belowright terminal<CR>
-nnoremap <silent>\ :NERDTreeToggle<CR>
 
 """""""""""""""""
 "  Vim Plugins  "
@@ -125,6 +120,9 @@ call plug#begin()
   Plug 'vim-airline/vim-airline-themes'
 call plug#end()
 
+"" Runtime File Type Plugins
+filetype plugin on
+
 "" Vim Airline
 let g:airline_theme='angr'
 let g:airline#extensions#fzf#enabled = 1
@@ -133,30 +131,27 @@ let g:airline#extensions#lsp#enabled = 1
 let g:airline#extensions#nerdtree_statusline = 1
 
 "" Vim Ale
+let g:ale_enable = 1
+let g:ale_completion_enable = 1
+let g:ale_sign_column_always =1
+set omnifunc=ale#completion#OmniFunc
+let g:ale_virtualtext_cursor = 1
+let g:ale_hover_cursor = 1
 let g:ale_disable_lsp = 'auto'
+nnoremap <silent> [e :ALENext<CR>
+nnoremap <silent> ]e :ALEPrevious<CR>
 
 "" FZF Config
 let g:fzf_vim = {}
-
 " Default: Use quickfix list
-let g:fzf_vim.listproc = { list -> fzf#vim#listproc#quickfix(list) }
-" let g:fzf_vim.listproc = { list -> fzf#vim#listproc#location(list) }
+"let g:fzf_vim.listproc = { list -> fzf#vim#listproc#quickfix(list) }
+let g:fzf_vim.listproc = { list -> fzf#vim#listproc#location(list) }
 
 " Command-wise customization
 let g:fzf_vim.listproc_ag = { list -> fzf#vim#listproc#quickfix(list) }
-" let g:fzf_vim.listproc_rg = { list -> fzf#vim#listproc#location(list) }
-
-" Mapping selecting mappings
-nmap <leader><tab> <plug>(fzf-maps-n)
-xmap <leader><tab> <plug>(fzf-maps-x)
-omap <leader><tab> <plug>(fzf-maps-o)
+let g:fzf_vim.listproc_rg = { list -> fzf#vim#listproc#location(list) }
 
 " Insert mode completion
-imap <c-x><c-k> <plug>(fzf-complete-word)
-imap <c-x><c-f> <plug>(fzf-complete-path)
-imap <c-x><c-l> <plug>(fzf-complete-line)
-
-" Path completion with custom source command
 " inoremap <expr> <c-x><c-f> fzf#vim#complete#path('fdfind')
 inoremap <expr> <c-x><c-f> fzf#vim#complete#path('rg --files')
 
@@ -174,41 +169,14 @@ function! s:make_sentence(lines)
   return substitute(join(a:lines), '^.', '\=toupper(submatch(0))', '').'.'
 endfunction
 
-" Word Search
 inoremap <expr> <c-x><c-s> fzf#vim#complete({
-  \ 'source':  'batcat /usr/share/dict/words',
+  \ 'source':  'cat /usr/share/dict/words',
   \ 'reducer': function('<sid>make_sentence'),
   \ 'options': '--multi --reverse --margin 15%,0',
   \ 'left':    20})
 
-"" Delete trailing white space on save, useful for some filetypes ;)
-fun! CleanExtraSpaces()
-  let save_cursor = getpos(".")
-  let old_query = getreg('/')
-  silent! %s/\s\+$//e
-  call setpos('.', save_cursor)
-  call setreg('/', old_query)
-endfun
-
-"" Function to set tab settings based on file type
-function! SetFileTypeSettings()
-  if &filetype == 'python'
-    set tabstop=4 shiftwidth=4 expandtab
-  elseif &filetype == 'bash'
-    set tabstop=4 shiftwidth=4 noexpandtab
-  elseif &filetype == 'c' || 'cpp' || 'zig'
-    set tabstop=4 shiftwidth=4 expandtab
-  elseif &filetype == 'html' || &filetype == 'css' || &filetype == 'javascript'
-    set tabstop=2 shiftwidth=2 expandtab
-  elseif &filetype == 'vim' || 'lua'
-    set tabstop=2 shiftwidth=2 expandtab
-  endif
-endfunction
-
-"" Use an autocommand to trigger the function
-autocmd FileType * call SetFileTypeSettings()
-
 "" Asyncomplete
+let g:asyncomplete_enable_for_all = 1
 imap <c-space> <Plug>(asyncomplete_force_refresh)
 inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
@@ -218,11 +186,20 @@ autocmd! CompleteDone * if pumvisible() == 0 | pclose | endif
 "" Emmet & HTML
 let g:user_emmet_leader_key=','
 
+"" Windows Quick Keys
+nnoremap <C-h> <C-w>h<CR>
+nnoremap <C-j> <C-w>j<CR>
+nnoremap <C-k> <C-w>k<CR>
+nnoremap <C-l> <C-w>l<CR>
+nnoremap <silent>q :bdelete %<CR>
+nnoremap <C-t> :belowright terminal<CR>
+nnoremap <leader><leader> :NERDTreeToggle<CR>
+
 "" Which-key Settings
 nnoremap <silent> <leader>      :<c-u>WhichKey '<Space>'<CR>
 nnoremap <silent> <localleader> :<c-u>WhichKey  ','<CR>
 let g:which_key_map = {}
-let g:which_key_map.b = {
+let g:which_key_map['b'] = {
   \ 'name' : '+buffer' ,
   \ '1' : ['b1'                    , 'buffer 1']         ,
   \ '2' : ['b2'                    , 'buffer 2']         ,
@@ -234,7 +211,7 @@ let g:which_key_map.b = {
   \ 'p' : ['bprevious'             , 'previous-buffer']  ,
   \ '?' : ['Buffers'               , 'fzf-buffer']       ,
   \ }
-let g:which_key_map.l = {
+let g:which_key_map['l'] = {
   \ 'name' : '+LSP' ,
   \ 'c' : ['LspCodeLens'           , 'Code Lens']        ,
   \ 'd' : ['LspDefinition'         , 'LSP Definition']   ,
@@ -246,36 +223,38 @@ let g:which_key_map.l = {
   \ 'p' : ['LspPreviousDiagnostic' , 'Prev Diagnostic']  ,
   \ 's' : ['LspStatus'             , 'LSP Status']       ,
   \ }
-let g:which_key_map.n = {
+let g:which_key_map['n'] = {
   \ 'name' : '+NerdTree' ,
   \ 'f' : ['NERDTreeFind'          , 'NERD Find']        ,
   \ 'n' : ['NERDTree'              , 'NERD Tree']        ,
   \ 't' : ['NERDTreeToggle'        , 'NERD Toggle']      ,
   \ }
-let g:which_key_map.p = {
+let g:which_key_map['p'] = {
   \ 'name' : '+Spelling' ,
-  \ 's' : ['set spell'             , 'Spell Check']      ,
-  \ 'n' : ['set nospell'           , 'No Spell Check']   ,
-  \ 'g' : ['spellgood'             , 'Add Word as Good'] ,
-  \ 'r' : ['spellwrong'            , 'Add Word as Wrong'],
-  \ 'u' : ['spellundo'             , 'Undo Spellgood']   ,
+  \ 's' : [':set spell'             , 'Spell Check']      ,
+  \ 'n' : [':set nospell'           , 'No Spell Check']   ,
+  \ 'g' : [':spellgood'             , 'Add Word as Good'] ,
+  \ 'r' : [':spellwrong'            , 'Add Word as Wrong'],
+  \ 'u' : [':spellundo'             , 'Undo Spellgood']   ,
   \ }
-let g:which_key_map.s = {
+let g:which_key_map['s'] = {
   \ 'name' : '+FZF' ,
   \ 'b' : ['Buffers'               , 'Buffers']          ,
-  \ 'C' : ['Changes'               , 'Changes']          ,
+  \ 'c' : ['Changes'               , 'Changes']          ,
   \ 'f' : ['Files'                 , 'Files']            ,
   \ 'g' : ['GFiles'                , 'Git Files']        ,
   \ 'h' : ['History'               , 'History']          ,
+  \ 'k' : ['Commands'              , 'Commands']         ,
   \ 'l' : ['Lines'                 , 'Lines']            ,
   \ 'm' : ['Maps'                  , 'Maps']             ,
   \ 'r' : ['Rg'                    , 'RipGrep']          ,
   \ 's' : ['Colors'                , 'Colorschemes']     ,
   \ 'w' : ['Windows'               , 'FZF Windows']      ,
-  \ 'x' : ['Commands'              , 'Commands']         ,
+  \ ':' : [':History:'             , 'CMD Search']       ,
+  \ '/' : [':History/'             , 'Search History']   ,
   \ '?' : ['Helptags'              , 'Help Tags']        ,
   \ }
-let g:which_key_map.w = {
+let g:which_key_map['w'] = {
   \ 'name' : '+windows' ,
   \ 'w' : ['<C-W>w'                , 'Other Window']     ,
   \ 'd' : ['<C-W>c'                , 'Delete Window']    ,
@@ -292,7 +271,7 @@ let g:which_key_map.w = {
   \ 'K' : [':resize -5'            , 'Expand Up']        ,
   \ '=' : ['<C-W>='                , 'Balance Windows']  ,
   \ }
-let g:which_key_map.z = {
+let g:which_key_map['z'] = {
   \ 'name' : '+Folds' ,
   \ 'a'    : ['za'                 , 'Toggle Fold']      ,
   \ 'c'    : ['zc'                 , 'Close Fold']       ,
@@ -334,15 +313,47 @@ augroup lsp_install
   autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
 augroup END
 
-"" Git Status
-function! GitBranch()
-  return system("git rev-parse --abbrev-ref HEAD 2>/dev/null | tr -d '\n'")
+"" Delete trailing white space on save, useful for some filetypes ;)
+fun! CleanExtraSpaces()
+  let save_cursor = getpos(".")
+  let old_query = getreg('/')
+  silent! %s/\s\+$//e
+  call setpos('.', save_cursor)
+  call setreg('/', old_query)
+endfun
+
+"" Function to set tab settings based on file type
+function! SetFileTypeSettings()
+  if &filetype == 'python'
+    set tabstop=4 shiftwidth=4 expandtab
+  elseif &filetype == 'bash'
+    set tabstop=4 shiftwidth=4 noexpandtab
+  elseif &filetype == 'c' || 'cpp' || 'zig'
+    set tabstop= 4 shirtwidth=4 cindent
+  elseif &filetype == 'html' || &filetype == 'css' || &filetype == 'javascript'
+    set tabstop=2 shiftwidth=2 expandtab
+  elseif &filetype == 'vim' || 'lua'
+    set tabstop=2 shiftwidth=2 expandtab
+  endif
 endfunction
 
-function! StatuslineGit()
-  let l:branchname = GitBranch()
-  return strlen(l:branchname) > 0?'  '.l:branchname.' ':''
-endfunction
+"" Use an autocommand to trigger the function
+autocmd FileType * call SetFileTypeSettings()
+
+"""""""""""""""""""
+"  Gvim Settings  "
+"""""""""""""""""""
+"" guioptions
+if has("gui_running")
+  set guioptions+=d
+  set guioptions+=a
+  set guioptions-=T
+  set guioptions-=l
+  set guioptions-=b
+  set guioptions-=r
+  set guifont=Hack\ Nerd\ Font\ 10
+  colorscheme slate
+endif
 
 """"""""""""""""""""""""
 " Auto Folding Config  "
@@ -402,18 +413,3 @@ endfunction
 "      \ setlocal foldtext=VimFoldText() |
 "     "\ set foldcolumn=2 foldminlines=2
 "augroup END
-
-"""""""""""""""""""
-"  Gvim Settings  "
-"""""""""""""""""""
-"" guioptions
-if has("gui_running")
-  set guioptions+=d
-  set guioptions+=a
-  set guioptions-=T
-  set guioptions-=l
-  set guioptions-=b
-  set guioptions-=r
-  set guifont=Hack\ Nerd\ Font\ 10
-  colorscheme retrobox
-endif
