@@ -329,7 +329,7 @@ function! SetFileTypeSettings()
   elseif &filetype == 'bash'
     set tabstop=4 shiftwidth=4 noexpandtab
   elseif &filetype == 'c' || 'cpp' || 'zig'
-    set tabstop= 4 shirtwidth=4 cindent
+    set tabstop=4 shiftwidth=4 cindent
   elseif &filetype == 'html' || &filetype == 'css' || &filetype == 'javascript'
     set tabstop=2 shiftwidth=2 expandtab
   elseif &filetype == 'vim' || 'lua'
